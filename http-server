@@ -1,0 +1,75 @@
+1. init.ts
+export class Init {
+    constructor(
+        id: number,
+        name: string,
+        address: string
+    ){}
+}
+
+2. data.service.ts
+import {Injectable} from "@angular/core";
+// 1. 初始化类型文件
+import {Init} from "./init";
+// 2. 导入http依赖
+import {Http} from "@angular/http";
+import 'rxjs/add/operator/toPromise';
+
+@Injectable()
+export class DataService {
+    // 4. 依赖注入
+    constructor(public http:Http) {
+    };
+
+    getData():Promise<Init[]> {
+        return this.http.get("app/templates/data.json")
+            .toPromise()
+            .then(response => response.json() as Init[]);
+    }
+}
+
+3. app.component.ts
+import {Component, OnInit} from '@angular/core';
+import {Router}            from '@angular/router';
+
+import {Init}                from './init';
+import {DataService}         from './data.service';
+
+@Component({
+    selector: 'my-app',
+    templateUrl: 'app/templates/one.html'
+})
+export class AppComponent implements OnInit {
+    inits:Init[];
+    constructor(private dataService:DataService) {};
+
+    getData():void {
+        this.dataService
+            .getData()
+            .then(inits => this.inits = inits);
+    }
+
+    ngOnInit():void {
+        this.getData();
+    }
+}
+4. app.module.ts
+import {NgModule}         from "@angular/core";               // 模块
+import {BrowserModule}    from "@angular/platform-browser";   // 浏览器
+import {FormsModule}       from "@angular/forms";           // 表单
+// 3. 导入服务
+import {DataService} from "./data.service";
+// 1. 加载HttpModule
+import {HttpModule} from "@angular/http";
+
+import {AppComponent}     from "./app.component";             // 自定义组件
+// 2. 导入到模块组件中
+@NgModule({
+    imports: [BrowserModule, FormsModule, HttpModule],    // 加载必须的核心模块
+    declarations: [AppComponent],     // 组件, 服务, 管道
+    bootstrap: [AppComponent],     // 主组件
+    providers: [DataService]       // 4. 加载服务
+})
+export class AppModule {
+
+}
